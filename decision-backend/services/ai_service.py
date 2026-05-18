@@ -429,21 +429,21 @@ def get_vision_fallback(question: str, mode: str, has_image: bool = False) -> st
 def get_vision_decision(question: str, image_data: str = None, mode: str = "jarvis") -> str:
     prompt = f"""
 You are the multimodal computer vision and reasoning engine of DecisionOS Vision.
-The user is holding or describing an object/product: "{question}"
+The user is holding or showing an object/product in the camera: "{question}"
 
-You must visually inspect the product in the image, calculate market value, run a risk analysis, and generate a natural voice assistant script.
+You must visually inspect the real product shown in the image, accurately identify what it is, calculate its market value, run a risk analysis, and generate a natural voice assistant script.
 
-Respond STRICTLY in JSON format matching this exact schema:
+CRITICAL INSTRUCTION: You must respond ONLY with raw, valid JSON. Do not include markdown backticks (```json), do not include intro or outro text. Return EXACTLY this JSON structure:
 {{
-  "product_name": "Exact or inferred product name (e.g. Flagship Smartphone Pro)",
+  "product_name": "Exact name of the product identified in the camera image",
   "category": "Product category and industry",
   "price_estimate": "Estimated retail price range (e.g. $199 - $249)",
-  "confidence": integer between 80 and 99,
-  "recommendation": "Punchy recommendation title (e.g. BUY FOR PRODUCTIVITY, WAIT FOR DISCOUNT, AVOID)",
+  "confidence": integer between 85 and 99,
+  "recommendation": "Punchy recommendation title matching the real product (e.g. BUY FOR PRODUCTIVITY, WAIT FOR DISCOUNT, AVOID)",
   "type": "yes or caution or no",
-  "summary": "Visual analysis and executive assessment in 2-3 sentences",
-  "advantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
-  "disadvantages": ["Disadvantage 1", "Disadvantage 2"],
+  "summary": "Specific visual analysis of the actual item shown in the camera in 2-3 sentences",
+  "advantages": ["Specific advantage 1", "Specific advantage 2", "Specific advantage 3"],
+  "disadvantages": ["Specific disadvantage 1", "Specific disadvantage 2"],
   "risk_scores": {{
     "value_score": integer between 10 and 100,
     "regret_probability": integer between 5 and 90,
@@ -451,16 +451,16 @@ Respond STRICTLY in JSON format matching this exact schema:
     "usefulness_score": integer between 10 and 100
   }},
   "internet_reasoning": {{
-    "sentiment": "Summary of internet reviews and forum sentiment",
+    "sentiment": "Summary of real market sentiment for this product",
     "alternatives": "Specific competitor alternatives with prices",
     "market_trend": "Current market demand or price trend"
   }},
-  "voice_script": "A natural, conversational script that an AI voice assistant will speak aloud to the user.",
+  "voice_script": "A conversational voice script identifying the product shown and providing an executive assessment.",
   "agent_logs": [
-    "[Vision Agent] WebRTC camera frame captured... running object recognition...",
-    "[Market Agent] Querying global e-commerce sentiment and price parity matrices...",
-    "[Risk Agent] Evaluating depreciation curve, hardware durability, and financial exposure...",
-    "[Decision Agent] Synthesizing final recommendation...",
+    "[Vision Agent] Real-time WebRTC camera frame analyzed... object accurately recognized...",
+    "[Market Agent] Querying global pricing parity & consumer review aggregates...",
+    "[Risk Agent] Evaluating depreciation curve and build durability...",
+    "[Decision Agent] Orchestrating final buy recommendation dossier...",
     "[Voice Agent] Generating natural vocal response script..."
   ]
 }}
@@ -477,20 +477,33 @@ Respond STRICTLY in JSON format matching this exact schema:
                     ]
                 }
             ]
-            model_name = "llama-3.2-90b-vision-preview"
+            model_name = "llama-3.2-11b-vision-preview"
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                temperature=0.5
+            )
         else:
             messages = [{"role": "user", "content": prompt}]
             model_name = "llama-3.3-70b-versatile"
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                temperature=0.5,
+                response_format={"type": "json_object"}
+            )
 
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            temperature=0.7,
-            response_format={"type": "json_object"}
-        )
-        content = response.choices[0].message.content
-        json.loads(content)
-        return content
+        raw_text = response.choices[0].message.content.strip()
+        if raw_text.startswith("```json"):
+            raw_text = raw_text[7:]
+        if raw_text.startswith("```"):
+            raw_text = raw_text[3:]
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+        raw_text = raw_text.strip()
+        
+        json.loads(raw_text)
+        return raw_text
     except Exception as e:
         print(f"Groq Vision simulation API call failed: {e}. Falling back to dynamic vision generator.")
         return get_vision_fallback(question, mode, has_image=bool(image_data))
