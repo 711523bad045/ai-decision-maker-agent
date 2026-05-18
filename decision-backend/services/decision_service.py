@@ -6,11 +6,18 @@ def analyze_decision(question: str):
     ai_response = get_ai_decision(question)
 
     try:
-        return json.loads(ai_response)
-    except:
+        data = json.loads(ai_response)
+
+        # Add extra system-generated values
+        data["decision_score"] = {
+            "yes": data["confidence"],
+            "no": 100 - data["confidence"]
+        }
+
+        return data
+
+    except Exception as e:
         return {
-            "recommendation": "ERROR",
-            "confidence": 0,
-            "risk": "Unknown",
-            "reason": ai_response
+            "error": "Failed to parse AI response",
+            "raw": ai_response
         }
