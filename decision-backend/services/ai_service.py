@@ -477,7 +477,7 @@ CRITICAL INSTRUCTION: You must respond ONLY with raw, valid JSON. Do not include
                     ]
                 }
             ]
-            model_name = "llama-3.2-11b-vision-preview"
+            model_name = "meta-llama/llama-4-scout-17b-16e-instruct"
             response = client.chat.completions.create(
                 model=model_name,
                 messages=messages,
