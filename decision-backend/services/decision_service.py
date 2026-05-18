@@ -1,4 +1,4 @@
-from services.ai_service import get_ai_decision
+from services.ai_service import get_ai_decision, get_vision_decision
 import json
 
 def analyze_decision(question: str, category: str = "General Strategy", urgency: str = "Normal", mode: str = "ceo"):
@@ -47,3 +47,36 @@ def analyze_decision(question: str, category: str = "General Strategy", urgency:
             },
             "agent_logs": ["[Context Agent] Error in payload formatting..."]
         }
+
+
+def analyze_vision(question: str, image: str = None, mode: str = "jarvis"):
+    ai_response = get_vision_decision(question, image, mode)
+    try:
+        return json.loads(ai_response)
+    except Exception as e:
+        return {
+            "product_name": "Unknown Visual Object",
+            "category": "Diagnostics / Telemetry",
+            "price_estimate": "$0 - $0",
+            "confidence": 60,
+            "recommendation": "SYSTEM TELEMETRY FAULT",
+            "type": "caution",
+            "summary": f"Could not parse vision telemetry: {str(e)}",
+            "advantages": ["Webcam stream connected"],
+            "disadvantages": ["Frame recognition latency"],
+            "risk_scores": {
+                "value_score": 50,
+                "regret_probability": 50,
+                "financial_risk": 50,
+                "usefulness_score": 50
+            },
+            "internet_reasoning": {
+                "sentiment": "Diagnostic mode active",
+                "alternatives": "Retry frame capture",
+                "market_trend": "Offline telemetry"
+            },
+            "voice_script": "I encountered a visual telemetry fault. Please hold the product steady in the camera frame and speak your query again.",
+            "agent_logs": [
+                "[Vision Agent] Error parsing frame buffer..."
+            ]
+        }
