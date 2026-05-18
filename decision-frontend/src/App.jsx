@@ -258,7 +258,7 @@ function App() {
     try {
       const res = await axios.post("http://127.0.0.1:8000/vision", {
         question: q,
-        image: base64Frame ? base64Frame.slice(0, 100) + "..." : null,
+        image: base64Frame,
         mode: "jarvis"
       });
 

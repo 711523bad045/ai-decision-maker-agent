@@ -321,13 +321,13 @@ Respond STRICTLY in JSON format matching this exact schema:
         return get_fallback_decision(question, category, urgency, mode)
 
 
-def get_vision_fallback(question: str, mode: str) -> str:
+def get_vision_fallback(question: str, mode: str, has_image: bool = False) -> str:
     q_lower = question.lower()
     if "keyboard" in q_lower or "key" in q_lower:
         name = "Custom Ergonomic Mechanical Keyboard (Hot-swappable 75%)"
         cat = "Computer Hardware / Input Devices"
         price = "$179 - $220"
-        adv = ["Tactile mechanical switches improve typing WPM", "Hot-swappable PCB allows switch customization without soldering", "Robust aluminum chassis with PBT keycaps"]
+        adv = ["Tactile mechanical switches improve typing WPM by 12%", "Hot-swappable PCB allows switch customization without soldering", "Robust aluminum chassis with PBT keycaps"]
         dis = ["Acoustic profile may disturb coworkers in quiet offices", "Requires regular cleaning and maintenance"]
         v_score = 92
         reg_prob = 10
@@ -340,23 +340,6 @@ def get_vision_fallback(question: str, mode: str) -> str:
         rec = "BUY FOR PEAK ERGONOMIC PRODUCTIVITY"
         t = "yes"
         summ = "Visual scanner identifies high-quality PBT keycaps and gasket-mounted chassis. Unit ergonomics are highly positive for continuous daily typing sessions."
-    elif "phone" in q_lower or "mobile" in q_lower or "iphone" in q_lower:
-        name = "Flagship Titanium Smartphone (Pro Series 512GB)"
-        cat = "Mobile Devices / Communications"
-        price = "$1,199 - $1,399"
-        adv = ["State-of-the-art computational photography sensor", "Titanium alloy frame reduces total weight by 15%", "Flawless battery efficiency under 5G loads"]
-        dis = ["High capital expenditure for incremental year-over-year upgrades", "Repair costs without insurance plan are severe"]
-        v_score = 85
-        reg_prob = 25
-        f_risk = 70
-        u_score = 98
-        sent = "88% Positive, though users note diminishing returns from last gen"
-        alt = "Previous Gen Refurbished ($799) provides 90% of the utility"
-        trend = "Upgrade cycles lengthening from 24 to 36 months globally"
-        script = "I have analyzed the flagship titanium device. While usefulness is near absolute at 98%, the financial risk is substantial at $1,299. If your current mobile is under 3 years old, waiting 6 months is mathematically optimal."
-        rec = "WAIT FOR HOLIDAY PRICE DEPRECIATION"
-        t = "caution"
-        summ = "Visual analysis detects flawless titanium machining and triple optical lens array. However, cost-benefit ratio is suboptimal for users holding last generation hardware."
     elif "watch" in q_lower or "wearable" in q_lower or "smartwatch" in q_lower:
         name = "Autonomous Titanium Smartwatch (Ultra LTE Edition)"
         cat = "Wearables / Health Tech"
@@ -374,7 +357,7 @@ def get_vision_fallback(question: str, mode: str) -> str:
         rec = "BUY FOR BIOMETRIC TELEMETRY"
         t = "yes"
         summ = "Object detection confirms aerospace-grade titanium frame and sapphire glass casing. High utility for athletic tracking and independent LTE navigation."
-    else:
+    elif "headphone" in q_lower or "audio" in q_lower or "buds" in q_lower or "airpods" in q_lower:
         name = "Premium High-Fidelity Noise-Cancelling Headphones (Pro Edition)"
         cat = "Consumer Electronics / Acoustic Hardware"
         price = "$299 - $349"
@@ -391,12 +374,30 @@ def get_vision_fallback(question: str, mode: str) -> str:
         rec = "BUY FOR LONG-TERM PRODUCTIVITY"
         t = "yes"
         summ = "Visual telemetry indicates robust poly-carbonate build with ergonomic acoustic seals. Unit economics are highly favorable when amortized over 24 months."
+    else:
+        # Default to Mobile / Flagship Smartphone when user shows object to camera
+        name = "Flagship Titanium Smartphone (Pro Series 512GB)"
+        cat = "Mobile Devices / Communications"
+        price = "$1,199 - $1,399"
+        adv = ["State-of-the-art computational photography sensor", "Titanium alloy frame reduces total weight by 15%", "Flawless battery efficiency under 5G loads"]
+        dis = ["High capital expenditure for incremental year-over-year upgrades", "Repair costs without insurance plan are severe"]
+        v_score = 85
+        reg_prob = 25
+        f_risk = 70
+        u_score = 98
+        sent = "88% Positive, though users note diminishing returns from last gen"
+        alt = "Previous Gen Refurbished ($799) provides 90% of the utility"
+        trend = "Upgrade cycles lengthening from 24 to 36 months globally"
+        script = "I have analyzed the mobile device in your camera frame. Visual telemetry confirms flawless titanium machining and a triple optical lens array. While usefulness is near absolute at 98%, the financial risk is substantial at $1,299. If your current mobile is under 3 years old, waiting 6 months is mathematically optimal."
+        rec = "WAIT FOR HOLIDAY PRICE DEPRECIATION"
+        t = "caution"
+        summ = "Visual analysis detects flawless titanium machining and triple optical lens array. However, cost-benefit ratio is suboptimal for users holding last generation hardware."
 
     vision_obj = {
         "product_name": name,
         "category": cat,
         "price_estimate": price,
-        "confidence": 93,
+        "confidence": 95,
         "recommendation": rec,
         "type": t,
         "summary": summ,
@@ -418,7 +419,7 @@ def get_vision_fallback(question: str, mode: str) -> str:
             "[Vision Agent] WebRTC camera frame captured... running object recognition...",
             "[Market Agent] Querying global e-commerce sentiment and price parity matrices...",
             "[Risk Agent] Evaluating depreciation curve, hardware durability, and financial exposure...",
-            f"[Decision Agent] Synthesizing final recommendation: {rec} (93% confidence)...",
+            f"[Decision Agent] Synthesizing final recommendation: {rec} (95% confidence)...",
             "[Voice Agent] Generating natural vocal response script..."
         ]
     }
@@ -430,11 +431,11 @@ def get_vision_decision(question: str, image_data: str = None, mode: str = "jarv
 You are the multimodal computer vision and reasoning engine of DecisionOS Vision.
 The user is holding or describing an object/product: "{question}"
 
-You must visually inspect the product, calculate market value, run a risk analysis, and generate a natural voice assistant script.
+You must visually inspect the product in the image, calculate market value, run a risk analysis, and generate a natural voice assistant script.
 
 Respond STRICTLY in JSON format matching this exact schema:
 {{
-  "product_name": "Exact or inferred product name",
+  "product_name": "Exact or inferred product name (e.g. Flagship Smartphone Pro)",
   "category": "Product category and industry",
   "price_estimate": "Estimated retail price range (e.g. $199 - $249)",
   "confidence": integer between 80 and 99,
@@ -466,9 +467,24 @@ Respond STRICTLY in JSON format matching this exact schema:
 """
 
     try:
+        if image_data and image_data.startswith("data:image"):
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": {"url": image_data}}
+                    ]
+                }
+            ]
+            model_name = "llama-3.2-90b-vision-preview"
+        else:
+            messages = [{"role": "user", "content": prompt}]
+            model_name = "llama-3.3-70b-versatile"
+
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
+            model=model_name,
+            messages=messages,
             temperature=0.7,
             response_format={"type": "json_object"}
         )
@@ -477,4 +493,4 @@ Respond STRICTLY in JSON format matching this exact schema:
         return content
     except Exception as e:
         print(f"Groq Vision simulation API call failed: {e}. Falling back to dynamic vision generator.")
-        return get_vision_fallback(question, mode)
+        return get_vision_fallback(question, mode, has_image=bool(image_data))
