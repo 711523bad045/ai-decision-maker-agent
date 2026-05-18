@@ -3,7 +3,7 @@ import "./App.css";
 function App() {
   return (
     <div className="container">
-      <h1>DecisionOS 🧠</h1>
+      <h1>DecisionOS </h1>
 
       <input
         className="input"
