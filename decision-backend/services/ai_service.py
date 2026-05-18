@@ -9,30 +9,41 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 def get_ai_decision(question: str):
 
     prompt = f"""
-You are an AI Decision Maker.
+You are an advanced Decision Intelligence System.
 
-User question: {question}
+User Question: {question}
 
-Do the following:
-1. Analyze situation
-2. Give pros and cons
-3. Give final recommendation (YES/NO/MAYBE)
-4. Give confidence (0-100)
-5. Give risk level (Low/Medium/High)
+Perform deep analysis and return JSON with:
 
-Respond in JSON format:
+1. recommendation (YES / NO / MAYBE)
+2. confidence (0-100)
+3. risk (Low/Medium/High)
+
+4. parallel_universe (3 scenarios with title + story)
+5. future_self (message from future self after 5 years)
+6. bias_detection (list of psychological biases affecting decision)
+
+Respond ONLY in valid JSON format:
+
 {{
   "recommendation": "",
-  "confidence": ,
+  "confidence": 0,
   "risk": "",
-  "reason": ""
+  "parallel_universe": [
+    {{
+      "title": "",
+      "story": ""
+    }}
+  ],
+  "future_self": "",
+  "bias_detection": []
 }}
 """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+        temperature=0.8
     )
 
     return response.choices[0].message.content
