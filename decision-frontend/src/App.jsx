@@ -256,7 +256,8 @@ function App() {
     }
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/vision", {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await axios.post(`${apiBaseUrl}/vision`, {
         question: q,
         image: base64Frame,
         mode: "jarvis"
