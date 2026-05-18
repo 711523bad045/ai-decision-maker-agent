@@ -6,5 +6,10 @@ router = APIRouter()
 
 @router.post("/decision")
 async def make_decision(data: DecisionRequest):
-    result = analyze_decision(data.question)
+    result = analyze_decision(
+        question=data.question,
+        category=data.category,
+        urgency=data.urgency,
+        mode=data.mode
+    )
     return result
